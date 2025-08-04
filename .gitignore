@@ -2,3 +2,8 @@
 *.out
 *.o
 main
+.vs/
+*.vcxproj.user
+*.suo
+Debug/
+Release/
