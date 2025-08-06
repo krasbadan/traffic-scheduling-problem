@@ -1,10 +1,10 @@
 #include <iostream>
-#include <fstream>//Для тестов
+#include <fstream>
 
 #include <vector>
 #include <list>
 
-#include <iomanip>
+#include <iomanip>//for tabulation
 
 class Graph
 {
@@ -41,6 +41,7 @@ public:
 
 	Graph() : tau(0), K(0), n(0), m(0){}
 
+	//Запрещаем любое копирование, делаем Синглтон
 	Graph(Graph&) = delete;
 	Graph& operator = (const Graph&) = delete;
 
@@ -71,7 +72,6 @@ public:
 			}
 		}
 	}
-
 	void printGraph()
 	{
 		// Print graph
@@ -82,6 +82,17 @@ public:
 			}
 			if (!G[i].size()) std::cout << "NO LINKS" << '\n';
 		}
+	}
+
+	//By using Dijkstra
+	void FindMinPath()
+	{
+
+	}
+
+	void FindOptNode()
+	{
+
 	}
 };
 
