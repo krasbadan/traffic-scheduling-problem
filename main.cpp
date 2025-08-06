@@ -1,59 +1,110 @@
 #include <iostream>
+#include <fstream>
+
 #include <vector>
 #include <list>
 
-using std::cin;
-using std::cout;
+#include <iomanip>//for tabulation
 
-struct link {
-    static inline int tau, K;
-    const int from, to;
-    const int cost, capacity;
-    int traffic;
+class Graph
+{
+private:
+	struct link {
+		Graph* parentGraph;
+		const int from, to;
 
-    link(int f, int t, int c, int cap, int tr) 
-        : from(f), to(t), cost(c), capacity(cap), traffic(tr) {}
+		int cost, capacity;
+		int traffic;
 
-    void printLink() {
-        cout << "    link (" << from << ", " << to << "):";
-        cout << "    cost: " << cost;
-        cout << "    traffic: " << traffic << "/" << capacity*tau/100.0;
-        if (traffic > capacity*tau/100.0) cout << " (CONGESTION)";
-        cout << std::endl;
-    }
+		//Добавил ссылку на родителя, чтобы можно было к его полям обращаться
+		link(Graph* parent, int f, int t, int c, int cap, int tr) 
+			: parentGraph(parent), from(f), to(t), cost(c), capacity(cap), traffic(tr) {}
+
+		void printNode() {
+			std::cout << std::setw(10) <<"link (" << from << ", " << to << "):";
+			std::cout << std::setw(15) << "cost: " << cost;
+			std::cout << std::setw(15) << "traffic: " << traffic << "/" << capacity * parentGraph->tau / 100.0;
+
+			double congestion_limit = capacity * parentGraph->tau / 100.0;
+			if (traffic > congestion_limit)
+				std::cout << "\nCONGESTION!!!";
+			std::cout << '\n';
+		}
+	};
+
+public:
+	// Graph implementation via adjecency list
+	std::vector<std::list<link>> G; 
+
+	int tau, K;
+	int n, m;
+
+	Graph() : tau(0), K(0), n(0), m(0){}
+
+	//Запрещаем любое копирование, делаем Синглтон
+	Graph(Graph&) = delete;
+	Graph& operator = (const Graph&) = delete;
+
+	template<typename T>
+	void CreateGraph(T& input)
+	{
+		input >> n >> m >> tau >> K;
+		std::cout << "n = " << n << " m = " << m << " t = " << tau << " K = " << K << '\n';
+
+		G.resize(n);
+
+		for (int i = 0; i < m; i++) {
+			int u, v, cost, capacity, traffic_uv, traffic_vu;
+
+			input >> u >> v >> cost >> capacity >> traffic_uv >> traffic_vu;
+			u--; v--; // Switch to 0-indexation (need to switch back when printing actual result)
+
+			G[u].push_back(node(this, u, v, cost, capacity, traffic_uv));
+			G[v].push_back(node(this, v, u, cost, capacity, traffic_vu));
+
+			if (traffic_uv >= capacity * tau/100.0) {
+				std::cout << "Congestion at link (" << u << ", " << v << "): " 
+					<< traffic_uv << "/" << capacity * tau/100.0 << '\n';
+			}
+			if (traffic_vu >= capacity * tau/100.0) {
+				std::cout << "Congestion at link (" << v << ", " << u << "): " 
+					<< traffic_vu << "/" << capacity * tau/100.0 << '\n';
+			}
+		}
+	}
+	void printGraph()
+	{
+		// Print graph
+		for (int i = 0; i < n; i++) {
+			std::cout << std::endl << "Node " << i << ":" << '\n';
+			for (Graph::link& edge : G[i]) {
+				edge.printNode();
+			}
+			if (!G[i].size()) std::cout << "NO LINKS" << '\n';
+		}
+	}
+
+	//By using Dijkstra
+	void FindMinPath()
+	{
+
+	}
+
+	void FindOptNode()
+	{
+
+	}
 };
 
+
 int main() {
-    int n, m;
-    cin >> n >> m >> link::tau >> link::K;
-    cout << "n = " << n << " m = " << m << " t = " << link::tau << " K = " << link::K << std::endl;
+	system("chcp 1251>nul");//Для русского языка
+	std::fstream f("file.txt");
+	Graph graph;
 
-    // Graph implementation via adjecency list
-    std::vector<std::list<link>> G(n); 
-    for (int i = 0; i < m; i++) {
-        int u, v, cost, capacity, traffic_uv, traffic_vu;
-        cin >> u >> v >> cost >> capacity >> traffic_uv >> traffic_vu;
-        u--; v--; // Switch to 0-indexation (need to switch back when printing actual result)
-
-        G[u].push_back(link(u, v, cost, capacity, traffic_uv));
-        G[v].push_back(link(v, u, cost, capacity, traffic_vu));
-
-        if (traffic_uv >= capacity*link::tau/100.0) {
-            cout << "Congestion at link (" << u << ", " << v << "): " << traffic_uv << "/" << capacity*link::tau/100.0 << std::endl;
-        }
-        if (traffic_vu >= capacity*link::tau/100.0) {
-            cout << "Congestion at link (" << v << ", " << u << "): " << traffic_vu << "/" << capacity*link::tau/100.0 << std::endl;
-        }
-    }
-
-    // Print graph
-    for (int i = 0; i < n; i++) {
-        cout << std::endl << "Node " << i << ":" << std::endl;
-        for (link& edge : G[i]) {
-            edge.printLink( );
-        }
-        if (!G[i].size()) cout << "NO LINKS" << std::endl;
-    }
+	graph.CreateGraph(f);
+	graph.printGraph();
+	return 0;
 }
 
 /*
